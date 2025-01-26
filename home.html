@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #202225;
+            color: #fff;
+            margin: 0;
+            padding: 0;
+        }
+        .header {
+            background-color: #5865F2;
+            padding: 15px;
+            text-align: center;
+            font-size: 18px;
+            font-weight: bold;
+            color: white;
+        }
+        .content {
+            padding: 20px;
+        }
+        .members {
+            width: 300px;
+            max-height: 400px;
+            overflow-y: auto;
+            background-color: #2f3136;
+            border-radius: 8px;
+            padding: 10px;
+            margin-top: 20px;
+        }
+        .members ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .members li {
+            padding: 10px;
+            background-color: #36393f;
+            margin-bottom: 5px;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        اسم المستخدم: <span id="username"></span>
+    </div>
+    <div class="content">
+        <div class="members">
+            <h3>الأعضاء:</h3>
+            <ul id="members-list">
+                <!-- الأعضاء ستتم إضافتهم هنا -->
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        const CLIENT_ID = "1333040394040250471"; // ضع Client ID الخاص بك
+        const CLIENT_SECRET = "ZzSKbcyw5A6IgKERuFEEaHx1Njhay3Iv"; // ضع Client Secret الخاص بك
+        const REDIRECT_URI = "https://ihso77.github.io/itsalo/home.html"; // رابط Redirect
+
+        async function fetchUserData() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const code = urlParams.get("code");
+
+            if (code) {
+                try {
+                    // طلب رمز الوصول
+                    const tokenResponse = await fetch("https://discord.com/api/oauth2/token", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/x-www-form-urlencoded",
+                        },
+                        body: new URLSearchParams({
+                            client_id: CLIENT_ID,
+                            client_secret: CLIENT_SECRET,
+                            grant_type: "authorization_code",
+                            code: code,
+                            redirect_uri: REDIRECT_URI,
+                        }),
+                    });
+                    const tokenData = await tokenResponse.json();
+                    const accessToken = tokenData.access_token;
+
+                    // طلب بيانات المستخدم
+                    const userResponse = await fetch("https://discord.com/api/users/@me", {
+                        headers: {
+                            Authorization: `Bearer ${accessToken}`,
+                        },
+                    });
+                    const userData = await userResponse.json();
+
+                    // عرض اسم المستخدم
+                    document.getElementById("username").textContent = `${userData.username}#${userData.discriminator}`;
+
+                    // إضافة المستخدم إلى قائمة الأعضاء
+                    const membersList = document.getElementById("members-list");
+                    const listItem = document.createElement("li");
+                    listItem.textContent = `${userData.username}#${userData.discriminator}`;
+                    membersList.appendChild(listItem);
+                } catch (error) {
+                    console.error("حدث خطأ أثناء جلب بيانات المستخدم:", error);
+                }
+            }
+        }
+
+        // استدعاء الدالة عند تحميل الصفحة
+        fetchUserData();
+    </script>
+</body>
+</html>
